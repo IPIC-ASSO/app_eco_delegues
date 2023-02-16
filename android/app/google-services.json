@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "99113749406",
+    "project_id": "app-eco-delegues",
+    "storage_bucket": "app-eco-delegues.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99113749406:android:d53e2d37a8e6591905e48f",
+        "android_client_info": {
+          "package_name": "com.ipiccie.app_eco_delegues"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "99113749406-6bt1pch0gs15k15t6htoag1i6kscil7r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcxeEFXdSXTn6GOsl0H2IV3CyCjNPQMSs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "99113749406-6bt1pch0gs15k15t6htoag1i6kscil7r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "99113749406-2hhgg0dtqjb4mn30kth338sen8phc30e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ipiccie.appEcoDelegues"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
