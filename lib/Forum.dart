@@ -42,6 +42,8 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
   final ScrollController scrollController = ScrollController();
   int _limite = 20;
   int nbMessages = 0;
+  bool modif = false;
+  int indiceMessageModif=0;
   File? monFichier;
   File? imageFile;
   String imageUrl = '';
@@ -111,10 +113,11 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
           title: const Text('Forum'),
           automaticallyImplyLeading: false,
           actions: [
+            IconButton(onPressed: ()=>montreInfos(), icon: const Icon(Icons.info_outline)),
             IconButton(
               onPressed: ()=>deco(),
               icon: const Icon(Icons.logout),
-            ),
+            )
           ],
       ),
         body: SafeArea(
@@ -144,10 +147,13 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
               height: 52,
               width: 52,
               decoration: BoxDecoration(
-                color: AppCouleur.principal,
+                color: modif?AppCouleur.banni:AppCouleur.principal,
                 borderRadius: BorderRadius.circular(30),
               ),
-              child: IconButton(
+              child: modif?
+              IconButton(onPressed: ()=>suprMessage(indiceMessageModif),
+                  icon: Icon(Icons.delete_forever, size: 28,)):
+              IconButton(
                 onPressed:()=>{
                   _pickFile()},
                 icon: const Icon(
@@ -160,7 +166,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
               child:Padding(
                 padding: const EdgeInsets.all(4),
                 child: TextField(
-                textInputAction: TextInputAction.newline,
+                textInputAction:TextInputAction.newline,
                   keyboardType: TextInputType.multiline,
                 textCapitalization: TextCapitalization.sentences,
                 controller: textEditingController,
@@ -180,7 +186,11 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
                 borderRadius: BorderRadius.circular(30),
                 color: AppCouleur.principal
               ),
-              child: IconButton(
+              child: modif?
+              IconButton(
+                  onPressed: ()=>verslaPosteModif(textEditingController.text,indiceMessageModif),
+                  icon: Icon(Icons.save_as)):
+              IconButton(
                 onPressed: () {
                   versLaPoste(textEditingController.text, MessageType.texte);
                 },
@@ -210,12 +220,14 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
                   if (snapshot.hasData) {
                     listMessages = snapshot.data!.docs;
                     if (listMessages.isNotEmpty) {
-                      return ListView.builder(
+                      return GestureDetector(
+                        onDoubleTap: ()=>annuleModif(),
+                          child:ListView.builder(
                             itemCount: snapshot.data?.docs.length,
                             reverse: true,
                             controller: scrollController,
                             itemBuilder: (context, index) =>
-                                construitChat(index, snapshot.data?.docs[index]));
+                                construitChat(index, snapshot.data?.docs[index])));
                     } else {
                       return const Center(
                         child: Text('Pas de messages...'),
@@ -267,20 +279,22 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
       else if (chaton.envoyeur == idUtilisateur) {  //c'est moi qui envoie--> droite
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
-
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                chaton.type == MessageType.texte ? messageBubble(
-                  corps: chaton.corps,
-                  color: AppCouleur.droitier,
-                  textColor: AppCouleur.white,
-                  margin: const EdgeInsets.fromLTRB(0,1,3,1),
-                  bords:BorderRadius.only(
-                    bottomLeft:  unMessagePoste(index)?const Radius.circular(10.0):const Radius.circular(0),
-                    topLeft: unAncienMessagePoste(index)?const Radius.circular(10.0):const Radius.circular(0),
-                    topRight:unAncienMessagePoste(index)? const Radius.circular(10.0):const Radius.circular(0),))
+                chaton.type == MessageType.texte ? GestureDetector(
+                  onLongPress: ()=>modifMessage(index),
+                  onDoubleTap: ()=>modifMessage(index),
+                  child:messageBubble(
+                    corps: chaton.corps,
+                    color: AppCouleur.droitier,
+                    textColor: AppCouleur.white,
+                    margin: const EdgeInsets.fromLTRB(0,1,3,1),
+                    bords:BorderRadius.only(
+                      bottomLeft:  unMessagePoste(index)?const Radius.circular(10.0):const Radius.circular(0),
+                      topLeft: unAncienMessagePoste(index)?const Radius.circular(10.0):const Radius.circular(0),
+                      topRight:unAncienMessagePoste(index)? const Radius.circular(10.0):const Radius.circular(0),)))
                  : chaton.type == MessageType.image ? Container(
                   margin: const EdgeInsets.only(right: 10, top: 10),
                   child: chatImage(
@@ -405,6 +419,49 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
     }
   }
 
+  montreInfos() {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: true, // user must tap button!
+        builder: (BuildContext context) {
+      return AlertDialog(
+          title: const Text('Informations'),
+          content: SingleChildScrollView(
+              child: Text("Application développée et maintenue par IPIC-ASSO.\nPour toute question, problème, réclamation ou suggestion, contactez nous à l'adresse ipic.assistance@protonmail.com")));});}
+
+  modifMessage(int index){
+    setState(() {
+      modif = true;
+    });
+    indiceMessageModif = index;
+    textEditingController.text = Message.fromDocument(listMessages[index]).corps;
+  }
+
+  suprMessage(int index){
+    setState(() {
+      modif = false;
+    });
+    textEditingController.clear();
+    monPostier.supprime(listMessages[index].reference.path);
+  }
+
+  verslaPosteModif(String corps, int index){
+    setState(() {
+      modif = false;
+    });
+    textEditingController.clear();
+    print(listMessages[index].reference.path);
+    monPostier.modifie(listMessages[index].reference.path, corps);
+  }
+
+  annuleModif(){
+    if(modif){
+      setState(() {
+        modif = false;
+      });
+      textEditingController.clear();
+    }
+  }
 
   Uint8List recupDatum(String fausseDatum){
     List<int> list = utf8.encode(fausseDatum);

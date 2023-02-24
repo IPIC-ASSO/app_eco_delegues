@@ -48,14 +48,14 @@ class MonWidgetConnexion extends StatefulWidget {
 class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-
+  static final auth = FirebaseAuth.instance;
   bool mdpVisible = false;
 
   @override
   void initState() {
     super.initState();
     mdpVisible = true;
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    auth.authStateChanges().listen((User? user) {
       if (user == null) {
         print('User is currently signed out!');
       } else {
@@ -69,7 +69,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Appli trop b1')),
+      appBar: AppBar(title: const Text('Demonstrateur')),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: ListView(
@@ -107,17 +107,14 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
               child: TextField(
                 obscureText: mdpVisible,
                 controller: passwordController,
-                decoration: const InputDecoration(
+                onSubmitted: (value) => connecte(),
+                decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Mot de passe',
                   hintText: "Mot de passe",
-                  /*suffixIcon: IconButton(
-                      icon: Icon(mdpVisible? Icons.visibility: Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          mdpVisible = !mdpVisible;
-                        });
-                      }*/
+                  suffixIcon: IconButton(onPressed: (){setState(() {
+                    mdpVisible = !mdpVisible;
+                  });}, icon: Icon(mdpVisible? Icons.visibility: Icons.visibility_off)),
                 ),
               ),
             ),
@@ -181,25 +178,48 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
     }
   }
 
+  Future<void> resetPassword({required String email}) async {
+    await auth
+        .sendPasswordResetEmail(email: email)
+        .then((value) => Fluttertoast.showToast(
+        msg: 'Envoyé!', backgroundColor: Colors.grey))
+        .catchError(
+            (e) => Fluttertoast.showToast(
+                msg: 'Une erreur est survenue', backgroundColor: Colors.grey));
+
+    return;
+  }
+
   Future<void> _showMyDialog() async {
+    final TextEditingController mailControl = TextEditingController();
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Ah bah tant pis'),
+          title: const Text('Réinitialiser le mot de passe'),
           content: SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
-                Text('Les développeurs ont eu la flemme d\'implémenter cette fonctionnalité'),
-                Text('Fallait pas perdre votre mot de passe ¯\\_(ツ)_/¯'),
+              children: <Widget>[
+                Padding(padding: EdgeInsets.all(10),
+                child:Text('Veuillez rentrer votre adresse e-mail\nUn lien de récupération va vous être envoyé (pensez à vérifier les spams)')),
+                TextField(
+                  controller: mailControl,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'email',
+                    hintText: "adresse email",
+                  ),
+              ),
               ],
             ),
           ),
           actions: <Widget>[
+            OutlinedButton(onPressed: (){Navigator.of(context).pop();}, child: const Text('Annuler'),),
             OutlinedButton(
-              child: const Text(':.('),
-              onPressed: () {
+              child: const Text('Envoyer'),
+              onPressed: () async{
+                await resetPassword(email: mailControl.text);
                 Navigator.of(context).pop();
               },
             ),
@@ -276,7 +296,7 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('Appli trop b1')),
+        appBar: AppBar(title: const Text('Demonstrateur')),
         body: Padding(
             padding: const EdgeInsets.all(10),
             child: ListView(
@@ -329,13 +349,6 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
                       border: OutlineInputBorder(),
                       labelText: 'Mot de passe',
                       hintText: "Mot de passe",
-                      /*suffixIcon: IconButton(
-                      icon: Icon(mdpVisible? Icons.visibility: Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          mdpVisible = !mdpVisible;
-                        });
-                      }*/
                     ),
                   ),
                 ),

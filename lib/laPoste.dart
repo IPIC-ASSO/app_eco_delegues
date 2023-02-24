@@ -4,6 +4,8 @@ import 'package:app_eco_delegues/patrons/MesConstantes.dart';
 import 'package:app_eco_delegues/patrons/Message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 class laPoste{
@@ -45,7 +47,6 @@ class laPoste{
         .snapshots();
   }
 
-
   Stream<QuerySnapshot> prendNomDest(){
     return firebaseFirestore.collection(FirestoreConstants.cheminUtilisateur).snapshots();
   }
@@ -64,5 +65,20 @@ class laPoste{
     FirebaseFirestore.instance.runTransaction((transaction) async {
       transaction.set(documentReference, chatMessages.toJson());
     });
+  }
+
+  supprime(String reference){
+    firebaseFirestore.doc(reference).delete().then((doc)=>
+        Fluttertoast.showToast(msg: 'Supprimé!', backgroundColor: Colors.grey),
+      onError: (e) => Fluttertoast.showToast(msg: 'Une erreur est survenue', backgroundColor: Colors.grey),
+    );
+  }
+
+  modifie(String reference, String nouvMessage){
+    print(reference);
+    firebaseFirestore.doc(reference).update({"corps":nouvMessage}).then((doc)=>
+        Fluttertoast.showToast(msg: 'Modifié!', backgroundColor: Colors.grey),
+      onError: (e) => Fluttertoast.showToast(msg: 'Une erreur est survenue', backgroundColor: Colors.grey),
+    );
   }
 }

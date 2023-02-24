@@ -84,7 +84,7 @@ Widget messageBubble(
   return Container(
     padding: const EdgeInsets.all(10),
     margin: margin,
-    width: 200,
+    width: 250,
     decoration: BoxDecoration(
       color: color,
       borderRadius: bords??BorderRadius.zero,
