@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:app_eco_delegues/laPoste.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:image/image.dart' as imag;
 import 'dart:ui';
@@ -160,7 +161,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
         content: Text('Connexion...'),
       ));
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: nameController.text,
+        email: nameController.text.replaceAll(' ', ''),
         password: passwordController.text,
       );
     } on FirebaseAuthException catch (e) {
@@ -278,6 +279,7 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
   TextEditingController nameController = TextEditingController();
   TextEditingController pseudoController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController codeController = TextEditingController();
 
   @override
   void initState() {
@@ -343,12 +345,22 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
                 Container(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                   child: TextField(
-
                     controller: passwordController,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Mot de passe',
                       hintText: "Mot de passe",
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                  child: TextField(
+                    controller: codeController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Code',
+                      hintText: "Code secret",
                     ),
                   ),
                 ),
@@ -383,27 +395,35 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
     );
   }
 
-  nouvUti()async{
+  nouvUti() async{
     try {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Connexion...'),
       ));
-      final credit = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: nameController.text,
-        password: passwordController.text,
-      );
-      if (credit.user!=null){
-        FirebaseFirestore db = FirebaseFirestore.instance;
-        //String url = await dessine(pseudoController.text.characters.first) as String;
-        final user = <String, dynamic>{
-          "id": credit.user?.uid,
-          "pseudo": pseudoController.text,
-          //"photoCRI":url
-        };
-        db.collection("Utilisateurs").add(user).then((DocumentReference doc) =>
-            print('DocumentSnapshot added with ID: ${doc.id}'));
+      FirebaseFirestore db = FirebaseFirestore.instance;
+      FirebaseStorage sto = FirebaseStorage.instance;
+      if(await new laPoste(firebaseFirestore: db, firebaseStorage: sto).verifcode(codeController.text)) {
+        final credit = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: nameController.text.replaceAll(' ', ''),
+          password: passwordController.text,
+        );
+        if (credit.user != null) {
+          //String url = await dessine(pseudoController.text.characters.first) as String;
+          final user = <String, dynamic>{
+            "id": credit.user?.uid,
+            "pseudo": pseudoController.text,
+            //"photoCRI":url
+          };
+          db.collection("Utilisateurs").add(user).then((
+              DocumentReference doc) =>
+              print('DocumentSnapshot added with ID: ${doc.id}'));
+        }
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Code incorrect :/'),
+        ));
       }
-
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -412,6 +432,10 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
       } else if (e.code == 'email-already-in-use') {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Un compte est déjà associé à cette adresse e-mail.'),
+        ));
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('échec de l\'inscription.'),
         ));
       }
     } catch (e) {

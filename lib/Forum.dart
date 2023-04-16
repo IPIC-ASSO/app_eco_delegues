@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:downloads_path_provider_28/downloads_path_provider_28.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:app_eco_delegues/laPoste.dart';
 import 'package:app_eco_delegues/patrons/MesBellesCouleurs.dart';
@@ -424,10 +426,47 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
         context: context,
         barrierDismissible: true, // user must tap button!
         builder: (BuildContext context) {
-      return AlertDialog(
-          title: const Text('Informations'),
-          content: SingleChildScrollView(
-              child: Text("Application développée et maintenue par IPIC-ASSO.\nPour toute question, problème, réclamation ou suggestion, contactez nous à l'adresse ipic.assistance@protonmail.com")));});}
+          return AlertDialog(
+              title: const Text('Informations'),
+              content: SingleChildScrollView(
+                child: new RichText(
+                  text: new TextSpan(
+                    children: [
+                      new TextSpan(
+                        text: 'Application développée et maintenue par IPIC-ASSO.\nPour toute question, problème, réclamation ou suggestion, contactez nous à l\'adresse: ',
+                        style: new TextStyle(color: Colors.black),
+                      ),
+                      new TextSpan(
+                        text: 'contact@ipic-asso.fr',
+                        style: new TextStyle(color: Colors.blue),
+                        recognizer: new TapGestureRecognizer()
+                          ..onTap = () async {
+                            await Clipboard.setData(ClipboardData(text: "contact@ipic-asso.fr"));
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text('copié !'),
+                            ));
+                            },
+                      ),
+                      new TextSpan(
+                        text: ' ou visitez ',
+                        style: new TextStyle(color: Colors.black),
+                      ),
+                      new TextSpan(
+                        text: 'notre site',
+                        style: new TextStyle(color: Colors.blue),
+                        recognizer: new TapGestureRecognizer()
+                          ..onTap = () {
+                            launch('https://www.ipic-asso.fr');
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              )
+          );
+        });
+  }
+
 
   modifMessage(int index){
     setState(() {

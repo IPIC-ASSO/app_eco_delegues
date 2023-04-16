@@ -18,6 +18,12 @@ class laPoste{
     required this.firebaseStorage
   });
 
+  verifcode(String code)async{
+    final x = await firebaseFirestore.collection("Utilisateurs").doc("admin").get();
+    if(x.data()!=null && x.data()!["code"]==code) return true;
+    else return false;
+  }
+
   UploadTask chargeFichier(File fichier, String filename) {
     Reference reference = firebaseStorage.ref().child(filename);
     UploadTask uploadTask = reference.putFile(fichier);
