@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -30,10 +31,11 @@ class MonWidgetPrincipal extends StatefulWidget{
   State<MonWidgetPrincipal> createState() => _MonWidgetPrincipal();
 }
 
-class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
+class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingObserver {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
   FirebaseStorage grosseDB = FirebaseStorage.instance;
+  FirebaseMessaging messager = FirebaseMessaging.instance;
   late String idUtilisateur;
   late String urlAvatarUti;
   late laPoste monPostier;
@@ -61,15 +63,32 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
         Navigator.pop(context);
       }else{
         idUtilisateur = user.uid;
+        db.collection("Utilisateurs").doc(idUtilisateur).update({"co":true});
+        WidgetsBinding.instance.addObserver(this);
+        enregistreNotifieur();
       }
     });
     initializeDateFormatting('fr_FR');
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      db.collection("Utilisateurs").doc(idUtilisateur).update({"co":false});
+    } else if (state == AppLifecycleState.resumed) {
+      db.collection("Utilisateurs").doc(idUtilisateur).update({"co":true});
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   // message posté!
   bool unMessagePoste(int index) {
-    if ((index > 0 && listMessages[index - 1].get(FirestoreConstants.envoyeur) !=
-            idUtilisateur) ||  index == 0) {
+    if ((index > 0 && listMessages[index - 1].get(FirestoreConstants.envoyeur) != idUtilisateur) ||  index == 0) {
       return true;
     } else {
       return false;
@@ -290,7 +309,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
                   onDoubleTap: ()=>modifMessage(index),
                   child:messageBubble(
                     corps: chaton.corps,
-                    color: AppCouleur.droitier,
+                    color: (modif && indiceMessageModif==index)?AppCouleur.modification:AppCouleur.droitier,
                     textColor: AppCouleur.white,
                     margin: const EdgeInsets.fromLTRB(0,1,3,1),
                     bords:BorderRadius.only(
@@ -599,6 +618,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
   }
 
   void deco() async{
+    db.collection("Utilisateurs").doc(idUtilisateur).update({"co":false});
     await FirebaseAuth.instance.signOut();
   }
 
@@ -654,6 +674,61 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> {
       Fluttertoast.showToast(msg: e.message ?? e.toString());
     }
   }
+
+
+  void enregistreNotifieur() {
+    messager.requestPermission();
+
+
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      firebaseMessagingBackgroundHandler(message);
+    });
+
+    messager.getToken().then((token) {
+      print('token: $token');
+      db.collection('Utilisateurs')
+          .doc(idUtilisateur)
+          .update({'pushToken': token});
+    }).catchError((err) {
+      Fluttertoast.showToast(msg: err.message.toString());
+    });
+  }
+
+  /*void showNotification(RemoteNotification remoteNotification) async {
+    AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      Platform.isAndroid ? 'com.dfa.flutterchatdemo' : 'com.duytq.flutterchatdemo',
+      'Flutter chat demo',
+      playSound: true,
+      enableVibration: true,
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    DarwinNotificationDetails iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    print(remoteNotification);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      remoteNotification.title,
+      remoteNotification.body,
+      platformChannelSpecifics,
+      payload: null,
+    );
+  }*/
+}
+
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('onMessage: $message');
+  if (message.notification != null) {
+    print(message.notification?.body);
+    //showNotification(message.notification!);
+  }
+  return;
 }
 
 

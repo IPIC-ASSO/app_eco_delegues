@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:app_eco_delegues/laPoste.dart';
+import 'package:app_eco_delegues/patrons/MesBellesCouleurs.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:image/image.dart' as imag;
 import 'dart:ui';
@@ -33,6 +34,7 @@ class MonAppli extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays ([]);
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: _title,
       home: MonWidgetConnexion()
     );
@@ -81,7 +83,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
                 child: const Text(
                   'Groupe de discussion Eco-délégués',
                   style: TextStyle(
-                      color: Colors.blue,
+                      color: AppCouleur.eco,
                       fontWeight: FontWeight.w500,
                       fontSize: 30),
                 )),
@@ -409,15 +411,12 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
           password: passwordController.text,
         );
         if (credit.user != null) {
-          //String url = await dessine(pseudoController.text.characters.first) as String;
           final user = <String, dynamic>{
             "id": credit.user?.uid,
-            "pseudo": pseudoController.text,
-            //"photoCRI":url
+            "pseudo": pseudoController.text
           };
-          db.collection("Utilisateurs").add(user).then((
-              DocumentReference doc) =>
-              print('DocumentSnapshot added with ID: ${doc.id}'));
+          db.collection("Utilisateurs").doc(credit.user?.uid??DateTime.now().millisecondsSinceEpoch.toString()).set(user).then((value) =>
+              print('Utilisateur enregistré')).onError((error, stackTrace) => print(error));
         }
       }else{
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -457,56 +456,6 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
         );
       },
     );
-  }
-
-  Future<String> dessine(String txt) async {
-    final recorder = PictureRecorder();
-    final canvas = new Canvas(
-        recorder,
-        new Rect.fromPoints(
-            new Offset(0.0, 0.0), new Offset(200.0, 200.0)));
-
-    final paint = new Paint()
-      ..color = Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(200, 200), 100, paint);
-
-    final textStyle = TextStyle(
-      color: Colors.black,
-      fontSize: 50,
-    );
-    final textSpan = TextSpan(
-      text: txt,
-      style: textStyle,
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-
-    final xCenter = 100.0;
-    final yCenter = 100.0;
-    final offset = Offset(xCenter, yCenter);
-    textPainter.layout();
-    textPainter.paint(canvas, offset);
-
-    final picture = recorder.endRecording();
-    final img = await picture.toImage(200, 200);
-    return(await enregistreImg(img as File));
-
-  }
-
-  Future<String> enregistreImg(File fichier) async {
-    print('ok');
-    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-    Reference reference = firebaseStorage.ref().child(DateTime.now().millisecondsSinceEpoch.toString());
-    print("3");
-    UploadTask uploadTask = reference.putFile(fichier);
-    print("4");
-    TaskSnapshot snapshot = await uploadTask;
-    String url = await snapshot.ref.getDownloadURL();
-    return url;
   }
 }
 

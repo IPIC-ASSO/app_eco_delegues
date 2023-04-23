@@ -89,7 +89,7 @@ Widget messageBubble(
       color: color,
       borderRadius: bords??BorderRadius.zero,
     ),
-    child: Text(
+    child: SelectableText(
       corps,
       style: TextStyle(fontSize: 16, color: textColor),
     ),
