@@ -129,7 +129,15 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+    onWillPop: ()async{
+        if(modif){
+          annuleModif();
+          return false;
+        }
+      return true;
+      },
+    child: Scaffold(
       appBar: AppBar(
           title: const Text('Forum'),
           automaticallyImplyLeading: false,
@@ -152,6 +160,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
             ),
           ),
         ),
+    )
     );
   }
 

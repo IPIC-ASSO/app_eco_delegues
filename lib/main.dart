@@ -158,26 +158,31 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
   }
 
   Future<void> connecte()async{
-    try {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Connexion...'),
-      ));
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: nameController.text.replaceAll(' ', ''),
-        password: passwordController.text,
-      );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
+    if (FirebaseAuth.instance.currentUser!=null){
+      Navigator.of(context).push(_sortieAutoroute());
+    }else {
+      try {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Utilisateur introuvable.'),
+          content: Text('Connexion...'),
         ));
-      } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Mot de passe incorrect.'),
-        ));
+        final credential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+          email: nameController.text.replaceAll(' ', ''),
+          password: passwordController.text,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found') {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Utilisateur introuvable.'),
+          ));
+        } else if (e.code == 'wrong-password') {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Mot de passe incorrect.'),
+          ));
+        }
+      } catch (e) {
+        print(e);
       }
-    } catch (e) {
-      print(e);
     }
   }
 
