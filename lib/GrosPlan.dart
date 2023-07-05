@@ -1,14 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 class GrosPlan extends StatefulWidget {
   final String url;
 
   GrosPlan({Key? key,  required this.url})
-      :assert(url != null),
-        super(key: key);
+      :super(key: key);
 
 
   @override
@@ -18,14 +16,14 @@ class GrosPlan extends StatefulWidget {
 class _GrosPlanState extends State<GrosPlan> {
   @override
   initState() {
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     super.initState();
   }
 
   @override
   void dispose() {
     //SystemChrome.restoreSystemUIOverlays();
-    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     super.dispose();
   }
 

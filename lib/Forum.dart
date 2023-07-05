@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:downloads_path_provider_28/downloads_path_provider_28.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -182,7 +181,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
               ),
               child: modif?
               IconButton(onPressed: ()=>suprMessage(indiceMessageModif),
-                  icon: Icon(Icons.delete_forever, size: 28,)):
+                  icon: const Icon(Icons.delete_forever, size: 28,)):
               IconButton(
                 onPressed:()=>{
                   _pickFile()},
@@ -219,7 +218,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
               child: modif?
               IconButton(
                   onPressed: ()=>verslaPosteModif(textEditingController.text,indiceMessageModif),
-                  icon: Icon(Icons.save_as)):
+                  icon: const Icon(Icons.save_as)):
               IconButton(
                 onPressed: () {
                   versLaPoste(textEditingController.text, MessageType.texte);
@@ -457,34 +456,34 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
           return AlertDialog(
               title: const Text('Informations'),
               content: SingleChildScrollView(
-                child: new RichText(
-                  text: new TextSpan(
+                child: RichText(
+                  text: TextSpan(
                     children: [
-                      new TextSpan(
+                      const TextSpan(
                         text: 'Application développée et maintenue par IPIC-ASSO.\nPour toute question, problème, réclamation ou suggestion, contactez nous à l\'adresse: ',
-                        style: new TextStyle(color: Colors.black),
+                        style: TextStyle(color: Colors.black),
                       ),
-                      new TextSpan(
+                      TextSpan(
                         text: 'contact@ipic-asso.fr',
-                        style: new TextStyle(color: Colors.blue),
-                        recognizer: new TapGestureRecognizer()
+                        style: const TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
                           ..onTap = () async {
-                            await Clipboard.setData(ClipboardData(text: "contact@ipic-asso.fr"));
+                            await Clipboard.setData(const ClipboardData(text: "contact@ipic-asso.fr"));
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                               content: Text('copié !'),
                             ));
                             },
                       ),
-                      new TextSpan(
+                      const TextSpan(
                         text: ' ou visitez ',
-                        style: new TextStyle(color: Colors.black),
+                        style: TextStyle(color: Colors.black),
                       ),
-                      new TextSpan(
+                      TextSpan(
                         text: 'notre site',
-                        style: new TextStyle(color: Colors.blue),
-                        recognizer: new TapGestureRecognizer()
+                        style: const TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            launch('https://www.ipic-asso.fr');
+                            launchUrl(Uri.parse('https://www.ipic-asso.fr'));
                           },
                       ),
                     ],

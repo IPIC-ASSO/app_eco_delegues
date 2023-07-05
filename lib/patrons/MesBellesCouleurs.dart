@@ -5,7 +5,7 @@ class AppCouleur {
 
   static const Color charge = Color(0xff2b3a67);
   static const Color droitier = Color(0xE60087C0);
-  static const Color principal = Color(0xE600A7F4);
+  static const Color principal = Color(0xE656C8FF);
   static const Color gaucher = Color(0xCC7E7E7E);
   static const Color banni = Color(0xFFFF1D1D);
   static const Color modification = Color(0xFF009F08);

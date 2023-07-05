@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:app_eco_delegues/patrons/Message.dart';
 import 'package:flutter/material.dart';
 
 Widget errorContainer() {

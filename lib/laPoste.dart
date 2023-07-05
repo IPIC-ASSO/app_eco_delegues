@@ -19,7 +19,7 @@ class laPoste{
   });
 
   verifcode(String code)async{
-    final x = await firebaseFirestore.collection("Utilisateurs").doc("admin").get();
+    final x = await firebaseFirestore.doc(FirestoreConstants.cheminCode).get();
     if(x.data()!=null && x.data()!["code"]==code) return true;
     else return false;
   }
@@ -42,12 +42,12 @@ class laPoste{
   }
 
   Future<int> getNombreMessages(){
-    return firebaseFirestore.collection(FirestoreConstants.cheminMessages).snapshots().length;
+    return firebaseFirestore.collection(FirestoreConstants.cheminMessagesTest).snapshots().length;
   }
 
   Stream<QuerySnapshot> getChatMessage(int limit) {
     return firebaseFirestore
-        .collection(FirestoreConstants.cheminMessages)
+        .collection(FirestoreConstants.cheminMessagesTest)
         .orderBy(FirestoreConstants.temps, descending: true)
         .limit(limit)
         .snapshots();
@@ -60,7 +60,7 @@ class laPoste{
   void envoie(String corps, int type,
       String idEnvoyeur) {
     DocumentReference documentReference = firebaseFirestore
-        .collection(FirestoreConstants.cheminMessages)
+        .collection(FirestoreConstants.cheminMessagesTest)
         .doc(DateTime.now().millisecondsSinceEpoch.toString());
     Message chatMessages = Message(
         envoyeur: idEnvoyeur,
@@ -81,7 +81,6 @@ class laPoste{
   }
 
   modifie(String reference, String nouvMessage){
-    print(reference);
     firebaseFirestore.doc(reference).update({"corps":nouvMessage}).then((doc)=>
         Fluttertoast.showToast(msg: 'Modifié!', backgroundColor: Colors.grey),
       onError: (e) => Fluttertoast.showToast(msg: 'Une erreur est survenue', backgroundColor: Colors.grey),

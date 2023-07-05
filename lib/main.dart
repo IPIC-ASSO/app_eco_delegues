@@ -1,14 +1,11 @@
-import 'dart:io';
-import 'dart:math' as math;
 import 'package:app_eco_delegues/laPoste.dart';
 import 'package:app_eco_delegues/patrons/MesBellesCouleurs.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:image/image.dart' as imag;
-import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'Forum.dart';
@@ -32,11 +29,27 @@ class MonAppli extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIOverlays ([]);
-    return const MaterialApp(
+    SystemChrome.setEnabledSystemUIMode (SystemUiMode.manual, overlays: []);
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: _title,
-      home: MonWidgetConnexion()
+      home: const MonWidgetConnexion(),
+      theme: ThemeData(
+        // Define the default brightness and colors.
+        brightness: Brightness.light,
+        primaryColor: Colors.lightBlue[800],
+
+        // Define the default font family.
+        fontFamily: 'Arial',
+
+        // Define the default `TextTheme`. Use this to specify the default
+        // text styling for headlines, titles, bodies of text, and more.
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(fontSize: 72, fontWeight: FontWeight.bold),
+          titleLarge: TextStyle(fontSize: 26, fontStyle: FontStyle.italic),
+          bodyMedium: TextStyle(fontSize: 14, fontFamily: 'Hind'),
+        ),
+      ),
     );
   }
 }
@@ -86,6 +99,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
                       color: AppCouleur.eco,
                       fontWeight: FontWeight.w500,
                       fontSize: 30),
+                  textAlign: TextAlign.center,
                 )),
             Container(
                 alignment: Alignment.center,
@@ -112,7 +126,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
                 controller: passwordController,
                 onSubmitted: (value) => connecte(),
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   labelText: 'Mot de passe',
                   hintText: "Mot de passe",
                   suffixIcon: IconButton(onPressed: (){setState(() {
@@ -165,11 +179,6 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Connexion...'),
         ));
-        final credential = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-          email: nameController.text.replaceAll(' ', ''),
-          password: passwordController.text,
-        );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -181,7 +190,9 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
           ));
         }
       } catch (e) {
-        print(e);
+        if (kDebugMode) {
+          print(e);
+        }
       }
     }
   }
@@ -209,7 +220,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Padding(padding: EdgeInsets.all(10),
+                const Padding(padding: EdgeInsets.all(10),
                 child:Text('Veuillez rentrer votre adresse e-mail\nUn lien de récupération va vous être envoyé (pensez à vérifier les spams)')),
                 TextField(
                   controller: mailControl,
@@ -409,7 +420,7 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
       ));
       FirebaseFirestore db = FirebaseFirestore.instance;
       FirebaseStorage sto = FirebaseStorage.instance;
-      if(await new laPoste(firebaseFirestore: db, firebaseStorage: sto).verifcode(codeController.text)) {
+      if(await laPoste(firebaseFirestore: db, firebaseStorage: sto).verifcode(codeController.text)) {
         final credit = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
           email: nameController.text.replaceAll(' ', ''),
