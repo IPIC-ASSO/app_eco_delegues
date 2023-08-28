@@ -141,7 +141,7 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
           title: const Text('Forum'),
           automaticallyImplyLeading: false,
           actions: [
-            IconButton(onPressed: ()=>montreInfos(), icon: const Icon(Icons.info_outline)),
+            IconButton(onPressed: ()=>Apropos(context), icon: const Icon(Icons.info_outline)),
             IconButton(
               onPressed: ()=>deco(),
               icon: const Icon(Icons.logout),
@@ -728,7 +728,62 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
       payload: null,
     );
   }*/
+
+  Apropos(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle textStyle = theme.textTheme.bodyMedium!;
+    final List<Widget> aboutBoxChildren = <Widget>[
+      const SizedBox(height: 24),
+      RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+                style: textStyle,
+                text: "Application développée par IPIC-ASSO, à destination des éco-délégués de VDD.\n"
+                    'Pour en savoir plus, poser une question, effectuer une réclamation... '
+                    'Ecrivez nous à l\'adresse: '),
+            TextSpan(
+              text: 'contact@ipic-asso.fr',
+              style: const TextStyle(color: Colors.blue),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () async {
+                  await Clipboard.setData(
+                      const ClipboardData(text: "contact@ipic-asso.fr"));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('copié !'),
+                  ));
+                },
+            ),
+            TextSpan(
+              text: ' ou visitez notre site: ',
+              style: textStyle,
+            ),
+            TextSpan(
+              text: 'https://www.ipic-asso.fr',
+              style: const TextStyle(color: Colors.blue),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  launchUrl(Uri.parse('https://www.ipic-asso.fr'));
+                },
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    return showAboutDialog(
+      applicationIcon: Tab(
+          icon: Image.asset("assets/IPIC_logo_petit.png", width: 40,)),
+      applicationName: 'App Eco-délégués',
+      applicationVersion: '1.3.3',
+      applicationLegalese: '© 2023 IPIC-ASSO',
+      children: aboutBoxChildren,
+      context: context,
+    );
+  }
 }
+
+
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('onMessage: $message');

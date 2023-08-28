@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:app_eco_delegues/laPoste.dart';
 import 'package:app_eco_delegues/patrons/MesBellesCouleurs.dart';
+import 'package:app_eco_delegues/patrons/usineDeBiscottesGrillees.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -61,9 +64,9 @@ class MonWidgetConnexion extends StatefulWidget {
   State<MonWidgetConnexion> createState() => _MonWidgetConnexionState();
 }
 
-class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
-  TextEditingController nameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+class _MonWidgetConnexionState extends State<MonWidgetConnexion> with TickerProviderStateMixin{
+  TextEditingController mail = TextEditingController();
+  TextEditingController motDePasse = TextEditingController();
   static final auth = FirebaseAuth.instance;
   bool mdpVisible = false;
 
@@ -111,7 +114,8 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
             Container(
               padding: const EdgeInsets.all(10),
               child: TextField(
-                controller: nameController,
+                keyboardType: TextInputType.emailAddress,
+                controller: mail,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'email',
@@ -123,7 +127,7 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
               child: TextField(
                 obscureText: mdpVisible,
-                controller: passwordController,
+                controller: motDePasse,
                 onSubmitted: (value) => connecte(),
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
@@ -172,28 +176,29 @@ class _MonWidgetConnexionState extends State<MonWidgetConnexion> {
   }
 
   Future<void> connecte()async{
-    if (FirebaseAuth.instance.currentUser!=null){
-      Navigator.of(context).push(_sortieAutoroute());
-    }else {
-      try {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Connexion...'),
-        ));
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
+    if (auth.currentUser!=null){
+        print("co");
+      }else if(mail.text.isNotEmpty && motDePasse.text.isNotEmpty) {
+        try {
+          await auth.signInWithEmailAndPassword(email: mail.text, password: motDePasse.text);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Utilisateur introuvable.'),
+            content: Text('Connexion...'),
           ));
-        } else if (e.code == 'wrong-password') {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Mot de passe incorrect.'),
-          ));
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'user-not-found') {
+            Usine.montreBiscotte(context, "Utilisateur introuvable", this);
+          } else if (e.code == 'wrong-password') {
+            Usine.montreBiscotte(context, "Mot de passe incorrect", this);
+          }else if(e.code == 'too-many-requests'){
+            Usine.montreBiscotte(context, "L'accès à ce compte a été temporairement bloqué en raison de nombreuses tentatives de connexion. Veuillez réessayer plus tard", this);
+          }else{
+            Usine.montreBiscotte(context, "impossible de contacter la base données", this);
+            log(e.code);
+          }
+        } catch (e) {
+          log(e.toString());
+          Usine.montreBiscotte(context, "Une erreur est survenue", this);
         }
-      } catch (e) {
-        if (kDebugMode) {
-          print(e);
-        }
-      }
     }
   }
 
@@ -293,10 +298,10 @@ class MonWidgetIncription extends StatefulWidget {
   State<MonWidgetIncription> createState() => _MonWidgetIncriptionState();
 }
 
-class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
-  TextEditingController nameController = TextEditingController();
+class _MonWidgetIncriptionState extends State<MonWidgetIncription> with TickerProviderStateMixin{
+  TextEditingController mail = TextEditingController();
   TextEditingController pseudoController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  TextEditingController motDePasse = TextEditingController();
   TextEditingController codeController = TextEditingController();
 
   @override
@@ -341,7 +346,7 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   child: TextField(
-                    controller: nameController,
+                    controller: mail,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Email',
@@ -363,7 +368,7 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
                 Container(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                   child: TextField(
-                    controller: passwordController,
+                    controller: motDePasse,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Mot de passe',
@@ -413,50 +418,55 @@ class _MonWidgetIncriptionState extends State<MonWidgetIncription> {
     );
   }
 
-  nouvUti() async{
+  nouvUti() async {
     try {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Connexion...'),
       ));
       FirebaseFirestore db = FirebaseFirestore.instance;
       FirebaseStorage sto = FirebaseStorage.instance;
-      if(await laPoste(firebaseFirestore: db, firebaseStorage: sto).verifcode(codeController.text)) {
+      if (await laPoste(firebaseFirestore: db, firebaseStorage: sto).verifcode(
+          codeController.text)) {
         final credit = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-          email: nameController.text.replaceAll(' ', ''),
-          password: passwordController.text,
+          email: mail.text.replaceAll(' ', ''),
+          password: motDePasse.text,
         );
         if (credit.user != null) {
           final user = <String, dynamic>{
             "id": credit.user?.uid,
             "pseudo": pseudoController.text
           };
-          db.collection("Utilisateurs").doc(credit.user?.uid??DateTime.now().millisecondsSinceEpoch.toString()).set(user).then((value) =>
-              print('Utilisateur enregistré')).onError((error, stackTrace) => print(error));
+          db.collection("Utilisateurs").doc(credit.user?.uid ?? DateTime
+              .now()
+              .millisecondsSinceEpoch
+              .toString()).set(user).then((value) =>
+              print('Utilisateur enregistré')).onError((error, stackTrace) =>
+              print(error));
         }
-      }else{
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Code incorrect :/'),
         ));
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Le mot de passe est trop faible.'),
-        ));
+        Usine.montreBiscotte(context, "Mot de passe trop faible", this);
       } else if (e.code == 'email-already-in-use') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Un compte est déjà associé à cette adresse e-mail.'),
-        ));
-      }else{
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('échec de l\'inscription.'),
-        ));
+        Usine.montreBiscotte(
+            context, "Adresse mail déjà utilisée par un utilisateur", this);
+      } else if (e.code == 'invalid-email') {
+        Usine.montreBiscotte(context, "Adresse mail non valide", this);
+      } else {
+        Usine.montreBiscotte(context, "Inscription impossible", this);
+        print(e);
       }
     } catch (e) {
       print(e);
+      Usine.montreBiscotte(context, "Une erreur est survenue", this);
     }
   }
+
   Route _sortieAutoroute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => const MonWidgetPrincipal(),

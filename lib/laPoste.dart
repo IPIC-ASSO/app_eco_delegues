@@ -42,12 +42,12 @@ class laPoste{
   }
 
   Future<int> getNombreMessages(){
-    return firebaseFirestore.collection(FirestoreConstants.cheminMessagesTest).snapshots().length;
+    return firebaseFirestore.collection(FirestoreConstants.cheminMessages).snapshots().length;
   }
 
   Stream<QuerySnapshot> getChatMessage(int limit) {
     return firebaseFirestore
-        .collection(FirestoreConstants.cheminMessagesTest)
+        .collection(FirestoreConstants.cheminMessages)
         .orderBy(FirestoreConstants.temps, descending: true)
         .limit(limit)
         .snapshots();
@@ -60,7 +60,7 @@ class laPoste{
   void envoie(String corps, int type,
       String idEnvoyeur) {
     DocumentReference documentReference = firebaseFirestore
-        .collection(FirestoreConstants.cheminMessagesTest)
+        .collection(FirestoreConstants.cheminMessages)
         .doc(DateTime.now().millisecondsSinceEpoch.toString());
     Message chatMessages = Message(
         envoyeur: idEnvoyeur,
