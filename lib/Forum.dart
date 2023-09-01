@@ -686,13 +686,9 @@ class _MonWidgetPrincipal extends State<MonWidgetPrincipal> with WidgetsBindingO
 
   void enregistreNotifieur() {
     messager.requestPermission();
-
-
-
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       firebaseMessagingBackgroundHandler(message);
     });
-
     messager.getToken().then((token) {
       print('token: $token');
       db.collection('Utilisateurs')
